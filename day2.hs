@@ -1,3 +1,5 @@
+module Day2 (PWSet, pwLine, valid1, valid2, parsePWLine) where
+
 import Text.Parsec
 data PWSet = PWSet {
     min :: Int, 
@@ -32,11 +34,12 @@ charMatch pw pos chr = (pw !! (pos-1)) == chr
 valid2 (PWSet min max cchar pw) = charMatch pw min cchar /= charMatch pw max cchar
 part2 = show . length . filter valid2
 
+parsePWLine l = case (parse pwLine "" l) of
+    Left _ -> error "Bad password line"
+    Right x -> x
+
 main = do
     input <- getContents
-    let parseLine l = case (parse pwLine "" l) of
-            Left _ -> error "Bad password line"
-            Right x -> x
-        pwsets = map (parseLine) (lines input) in do
+    let pwsets = map (parsePWLine) (lines input) in do
             putStrLn $ part1 pwsets
             putStrLn $ part2 pwsets
