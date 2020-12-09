@@ -12,10 +12,6 @@ validAt xs n = x `isSumOfTwoIn` preamble where
     ys = drop n xs
     (preamble, x:_) = splitAt 25 ys
 
-windowAt xs n = preamble where
-    ys = drop n xs
-    (preamble, x:_) = splitAt 25 ys
-
 firstInvalidIndex xs = fmap (+25) . find (not . validAt xs) $ [25..]
 firstInvalid xs = xs !! (fromJust $ firstInvalidIndex xs)
 
