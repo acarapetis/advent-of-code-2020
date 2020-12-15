@@ -19,3 +19,5 @@ firstJust [] = Nothing
 firstJust ((Just x):_) = Just x
 firstJust (Nothing:xs) = firstJust xs
 
+readNums :: String -> [Int]
+readNums = map read . lines
