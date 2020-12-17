@@ -16,6 +16,9 @@ negateC (i, j) = (-i, -j)
 subtractC :: Coord -> Coord -> Coord
 subtractC u v = addC u (negateC v)
 
+scaleC :: Int -> Coord -> Coord
+scaleC k (i, j) = (k*i, k*j)
+
 -- This is unsafe: it assumes the elements of xs all have equal length.
 fromListOfLists :: [[a]] -> Grid a
 fromListOfLists xs = array (min, max) associations where
@@ -80,3 +83,6 @@ enumerate x = listArray (bounds x) $ zip (indices x) (elems x)
 
 directions :: [(Int, Int)]
 directions = filter (/= (0,0)) [(i, j)| i <- [-1,0,1], j <- [-1,0,1]]
+
+manhattan :: Coord -> Int
+manhattan (i,j) = abs i + abs j
