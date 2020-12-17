@@ -1,4 +1,4 @@
-module Grid (module Grid, bounds, elems) where
+module Grid (module Grid, bounds, elems, inRange, indices, (!)) where
 
 import Data.Array
 import Data.List (intercalate)
@@ -74,3 +74,9 @@ zipGridsWith :: (a -> b -> c) -> Grid a -> Grid b -> Grid c
 zipGridsWith f x y
     | bounds x /= bounds y = error "Incompatible grids"
     | otherwise = listArray (bounds x) $ zipWith f (elems x) (elems y)
+
+enumerate :: Grid a -> Grid (Coord, a)
+enumerate x = listArray (bounds x) $ zip (indices x) (elems x)
+
+directions :: [(Int, Int)]
+directions = filter (/= (0,0)) [(i, j)| i <- [-1,0,1], j <- [-1,0,1]]
