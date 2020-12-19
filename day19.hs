@@ -1,7 +1,7 @@
 import AOC
 import qualified Data.IntMap as M
-import Data.Either (isRight)
-import Data.List (isPrefixOf)
+import Data.List (stripPrefix)
+import Data.Maybe (maybeToList)
 
 data Rule = Str String | RuleRefs [Int] | Alt Rule Rule deriving (Show, Eq)
 type Rules = M.IntMap Rule
@@ -44,11 +44,12 @@ altP = do
 -- Basically implementing my own terrible version of Parsec (minus the return
 -- values; so just a "validating parser") so that I can handle circular
 -- dependencies for part 2.
-remainders :: Rules -> Int -> String -> [String]
+remainders :: Rules -- Ruleset to parse with
+    -> Int -- Number of rule to apply
+    -> String -- Input string
+    -> [String] -- Possible tails remaining after parsing
 remainders rules i = match' (rules M.! i) where
-    match' (Str s) xs
-        | isPrefixOf s xs = [drop (length s) xs]
-        | otherwise = []
+    match' (Str s) xs = maybeToList $ stripPrefix s xs
     match' (Alt a b) xs = match' a xs ++ match' b xs
     match' (RuleRefs rs) xs = matchSeq rs xs where
         matchSeq :: [Int] -> String -> [String]
