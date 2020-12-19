@@ -1,10 +1,10 @@
 import AOC
-import Data.Graph
 import qualified Data.IntMap as M
 import Data.Either (isRight)
+import Data.List (isPrefixOf)
 
-part1 txt = length . filter (validate rules) $ inputs
-    where (rules, inputs) = parseOrDie problemP txt
+data Rule = Str String | RuleRefs [Int] | Alt Rule Rule deriving (Show, Eq)
+type Rules = M.IntMap Rule
 
 problemP :: Parser (Rules, [String])
 problemP = do
@@ -12,9 +12,6 @@ problemP = do
     endOfLine
     inputs <- many1 (manyTill anyChar $ try endOfLine)
     return (rules, inputs)
-
-data Rule = Str String | RuleRefs [Int] | Alt Rule Rule deriving (Show, Eq)
-type Rules = M.IntMap Rule
 
 children (Alt a b) = children a ++ children b
 children (RuleRefs xs) = xs
@@ -44,36 +41,33 @@ altP = do
     b <- refsP
     return $ Alt a b
 
-validate :: Rules -> String -> Bool
-validate rules = isRight . parse (masterParser rules <* eof)
+-- Basically implementing my own terrible version of Parsec (minus the return
+-- values; so just a "validating parser") so that I can handle circular
+-- dependencies for part 2.
+remainders :: Rules -> Int -> String -> [String]
+remainders rules i = match' (rules M.! i) where
+    match' (Str s) xs
+        | isPrefixOf s xs = [drop (length s) xs]
+        | otherwise = []
+    match' (Alt a b) xs = match' a xs ++ match' b xs
+    match' (RuleRefs rs) xs = matchSeq rs xs where
+        matchSeq :: [Int] -> String -> [String]
+        matchSeq [] xs = [xs]
+        matchSeq (i:is) xs = concat . map (matchSeq is) $ remainders rules i xs
 
-type RuleGraph = (Graph, Vertex -> (Rule, Int, [Int]), Int -> Maybe Vertex)
+matches :: Rules -> Int -> String -> Bool
+matches rules i x = any (=="") $ remainders rules i x
 
-masterParser :: Rules -> Parser String
-masterParser rules = (assembleParsers graph ordering) M.! 0 where
-    ordering = topSort . transposeG $ g
-    graph@(g,_,_) = buildGraph rules
+part1 txt = length . filter (matches rules 0) $ inputs where
+    (rules, inputs) = parseOrDie problemP txt
 
-buildGraph :: Rules -> RuleGraph
-buildGraph = graphFromEdges . map f . M.toAscList
-    where f (i, x) = (x, i, children x)
+fixRules = M.union $ parseOrDie rulesP "8: 42 | 42 8\n11: 42 31 | 42 11 31\n"
 
-assembleParsers :: RuleGraph -> [Vertex] -> M.IntMap (Parser String)
-assembleParsers (_, vertData, _) = foldl addParser M.empty where
-    addParser ps v = M.insert key value ps where
-        (rule, key, kids) = vertData v
-        value = buildParser ps rule
-
-buildParser :: M.IntMap (Parser String) -> Rule -> Parser String
-buildParser ps (Str s) = string s
-buildParser ps (RuleRefs xs) = concat <$> foldr andThen (return []) xs where
-    andThen :: Int -> Parser [String] -> Parser [String]
-    andThen i acc = do
-        v <- (ps M.! i)
-        w <- acc
-        return $ v:w
-buildParser ps (Alt r1 r2) = try (buildParser ps r1) <|> buildParser ps r2
+part2 txt = length . filter (matches rules 0) $ inputs where
+    (oldRules, inputs) = parseOrDie problemP txt
+    rules = fixRules oldRules
 
 main = do
     input <- readFile "day19.txt"
     print $ part1 input
+    print $ part2 input
