@@ -62,7 +62,7 @@ matches rules i x = any (=="") $ remainders rules i x
 part1 txt = length . filter (matches rules 0) $ inputs where
     (rules, inputs) = parseOrDie problemP txt
 
-fixRules = M.union $ parseOrDie rulesP "8: 42 | 42 8\n11: 42 31 | 42 11 31\n"
+fixRules = M.union . parseOrDie rulesP $ unlines ["8: 42 | 42 8","11: 42 31 | 42 11 31"]
 
 part2 txt = length . filter (matches rules 0) $ inputs where
     (oldRules, inputs) = parseOrDie problemP txt
