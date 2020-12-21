@@ -21,3 +21,9 @@ firstJust (Nothing:xs) = firstJust xs
 
 readNums :: String -> [Int]
 readNums = map read . lines
+
+funcpow :: Int -> (a -> a) -> a -> a
+funcpow n f
+    | n == 0     = id
+    | n >= 1     = f . funcpow (n-1) f
+    | otherwise  = error "n must be positive"
