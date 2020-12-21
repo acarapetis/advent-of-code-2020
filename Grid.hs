@@ -4,6 +4,12 @@ import Data.Array
 import Data.List (intercalate)
 import Data.List.Split (chunksOf)
 
+data Cardinal = N | E | S | W deriving (Show, Eq)
+reflect N = S
+reflect S = N
+reflect W = E
+reflect E = W
+
 type Coord = (Int, Int)
 type Grid = Array Coord
 
@@ -18,6 +24,21 @@ subtractC u v = addC u (negateC v)
 
 scaleC :: Int -> Coord -> Coord
 scaleC k (i, j) = (k*i, k*j)
+
+rotateC :: Coord -> Coord
+rotateC (i, j) = (j, -i)
+rotateC' :: Coord -> Coord
+rotateC' (i, j) = (-j, i)
+
+rotateCard N = W
+rotateCard W = S
+rotateCard S = E
+rotateCard E = N
+
+cardToCoord N = (-1, 0)
+cardToCoord E = (0, 1)
+cardToCoord W = (0, -1)
+cardToCoord S = (1, 0)
 
 -- This is unsafe: it assumes the elements of xs all have equal length.
 fromListOfLists :: [[a]] -> Grid a
@@ -86,3 +107,22 @@ directions = filter (/= (0,0)) [(i, j)| i <- [-1,0,1], j <- [-1,0,1]]
 
 manhattan :: Coord -> Int
 manhattan (i,j) = abs i + abs j
+
+rotateBounds :: (Coord, Coord) -> (Coord, Coord)
+rotateBounds (a, b) = ((min i0 i1, min j0 j1), (max i0 i1, max j0 j1)) where
+    (i0, j0) = rotateC a
+    (i1, j1) = rotateC b
+
+rotateGrid :: Grid a -> Grid a
+rotateGrid g = ixmap (rotateBounds $ bounds g) rotateC' g
+
+topEdge :: Grid a -> [a]
+topEdge g = take (width g) $ elems g
+
+edge :: Grid a -> Cardinal -> [a]
+edge g d
+    | d == N = [ g ! (i0, j) | j <- [j0..j1] ]
+    | d == S = [ g ! (i1, j) | j <- [j0..j1] ]
+    | d == W = [ g ! (i, j0) | i <- [i0..i1] ]
+    | d == E = [ g ! (i, j1) | i <- [i0..i1] ]
+        where ((i0, j0), (i1, j1)) = bounds g

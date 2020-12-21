@@ -1,7 +1,6 @@
 import AOC
 import Grid
 data Ship = Ship Coord Cardinal deriving (Show, Eq)
-data Cardinal = N | E | S | W deriving (Show, Eq)
 data Action = Move Cardinal Int | Forward Int | Rotate Int deriving (Show, Eq)
 
 dir N = (-1,0)
@@ -14,11 +13,6 @@ applyCard c n p = addC p . scaleC n $ dir c
 apply (Move d n) (Ship p z) = Ship (applyCard d n p) z
 apply (Forward n) (Ship p z) = Ship (applyCard z n p) z
 apply (Rotate n) (Ship p z) = Ship p (rotate n z)
-
-reflect N = S
-reflect S = N
-reflect W = E
-reflect E = W
 
 rotate :: Int -> Cardinal -> Cardinal
 rotate n x
