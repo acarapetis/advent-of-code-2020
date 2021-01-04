@@ -1,9 +1,11 @@
 module AOC (module AOC, module EXPORT_ALL, (<*)) where
 
-import Text.Parsec as EXPORT_ALL hiding (parse)
+import Text.Parsec as EXPORT_ALL hiding (parse, uncons)
 import qualified Text.Parsec
 import Control.Applicative ((<*))
 import Data.Maybe as EXPORT_ALL
+import Data.List as EXPORT_ALL
+
 type Parser = Parsec String ()
 
 parse :: Parser t -> String -> Either ParseError t
